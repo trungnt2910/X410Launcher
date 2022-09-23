@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "X410Launcher": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "X410LauncherSilentInstall": {
+      "commandName": "Project",
+      "commandLineArgs": "--no-ui --install --force --launch"
+    }
+  }
+}
