@@ -62,8 +62,8 @@ internal static class ConsoleHelpers
         if (HasConsole())
         {
             CleanLine();
-            Console.Error.WriteLine(format, objects);
         }
+        Console.Error.WriteLine(format, objects);
     }
 
     public static void ErrorWriteProgressBar(double progress)

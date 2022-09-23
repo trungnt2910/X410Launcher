@@ -147,7 +147,7 @@ public class ConsoleApp
 
             if (_options.IsUpdate)
             {
-                if (model.InstalledVersion != null &&
+                if (model.InstalledVersion != null && !_options.IsForce &&
                     Version.Parse(model.InstalledVersion) >= model.Packages[0].Version)
                 {
                     ConsoleHelpers.CleanErrorAndWriteLine($"Latest version {model.InstalledVersion} already installed.");
