@@ -76,8 +76,8 @@ namespace X410Launcher.ViewModels
             get => _progress;
             private set
             {
-                SetProperty(ref _progress, value);
                 SetProperty(ref _isIndeterminate, value < 0, nameof(ProgressIsIndeterminate));
+                SetProperty(ref _progress, value);
             }
         }
 
@@ -209,7 +209,7 @@ namespace X410Launcher.ViewModels
                         using var appxBundleManifestStream =
                             zipArchive.Entries.First(e => e.FullName == "AppxMetadata/AppxBundleManifest.xml").Open();
                         var serializer = new XmlSerializer(typeof(Models.AppxBundle.Bundle));
-                        var bundle = (Models.AppxBundle.Bundle)serializer.Deserialize(appxBundleManifestStream);
+                        var bundle = (serializer.Deserialize(appxBundleManifestStream) as Models.AppxBundle.Bundle)!;
                         var architecture = RuntimeInformation.OSArchitecture switch
                         {
                             Architecture.X64 => Models.AppxBundle.PackageArchitecture.X64,
@@ -275,7 +275,7 @@ namespace X410Launcher.ViewModels
                     }
                     else
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
                         await Task.Run(() =>
                         {
                             entry.ExtractToFile(fullPath, overwrite: true);

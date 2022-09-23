@@ -60,7 +60,7 @@ public class MicrosoftStorePackage
         foreach (var row in table)
         {
             var data = row.Elements("td").ToList();
-            string url = data[0].Descendants("a").FirstOrDefault().GetAttributeValue("href", null);
+            string url = data[0].Descendants("a").First().GetAttributeValue("href", null);
             string name = data[0].InnerText;
             string expire = data[1].InnerText;
             string sha1 = data[2].InnerText;
@@ -84,7 +84,7 @@ public class MicrosoftStorePackage
         }
     }
 
-    public PackageInfo Find(string name, PackageArchitecture arch)
+    public PackageInfo? Find(string name, PackageArchitecture arch)
     {
         return _locations.Find(location => location.PackageName == name && location.Architecture == arch);
     }
