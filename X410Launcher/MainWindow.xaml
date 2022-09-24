@@ -8,7 +8,7 @@
         Title="X410Launcher" Height="450" Width="800">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="Settings" />
+            <MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click" />
             <MenuItem Header="About" />
         </Menu>
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

@@ -127,4 +127,13 @@ public partial class MainWindow : Window
 
         EnableButtons();
     }
+
+    private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new SettingsWindow()
+        {
+            Owner = this
+        };
+        window.ShowDialog();
+    }
 }

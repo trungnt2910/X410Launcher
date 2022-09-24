@@ -103,7 +103,7 @@ namespace X410Launcher.ViewModels
 
         public void RefreshInstalledVersion()
         {
-            var appxManifestPath = Path.Combine(GetAppPath(), "AppxManifest.xml");
+            var appxManifestPath = Path.Combine(Paths.GetAppInstallPath(), "AppxManifest.xml");
             if (File.Exists(appxManifestPath))
             {
                 using var stream = File.OpenRead(appxManifestPath);
@@ -251,7 +251,7 @@ namespace X410Launcher.ViewModels
                 }
 
                 using var appxArchive = new ZipArchive(packageStream);
-                var appPath = GetAppPath();
+                var appPath = Paths.GetAppInstallPath();
 
                 await UninstallPackageAsync();
 
@@ -301,7 +301,7 @@ namespace X410Launcher.ViewModels
         {
             await KillAsync();
 
-            var appPath = GetAppPath();
+            var appPath = Paths.GetAppInstallPath();
 
             await Task.Run(() =>
             {
@@ -331,18 +331,9 @@ namespace X410Launcher.ViewModels
 
         public void Launch()
         {
-            Process.Start(Path.Combine(GetAppPath(), "X410", "X410.exe"));
+            Process.Start(Paths.GetAppFile());
 
             StatusText = StatusTextStarted;
-        }
-
-        public string GetAppPath()
-        {
-            return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "X410Launcher",
-                "appx"
-                );
         }
     }
 }

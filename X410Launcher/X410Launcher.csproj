@@ -17,6 +17,7 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+    <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFrameworkMoniker.StartsWith('.NETFramework'))">
