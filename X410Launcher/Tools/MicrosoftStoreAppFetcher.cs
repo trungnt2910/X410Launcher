@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Linq;
-using System.Diagnostics;
-using System.Net.Sockets;
-using System.Windows.Controls;
+using HtmlAgilityPack;
 
 namespace X410Launcher.Tools;
 
@@ -49,13 +47,14 @@ public class MicrosoftStorePackage
     private void ParseLocations()
     {
         _locations.Clear();
-        var doc = new HtmlAgilityPack.HtmlDocument();
+        var doc = new HtmlDocument();
         doc.LoadHtml(_responseString);
 
         var table = doc.DocumentNode.SelectSingleNode("//table[@class='tftable']")
-                    .Descendants("tr")
-                    .Where(tr => tr.Elements("td").Count() >= 1)
-                    .ToList();
+                    ?.Descendants("tr")
+                    ?.Where(tr => tr.Elements("td").Count() >= 1)
+                    ?.ToList() 
+                    ?? (IList<HtmlNode>)Array.Empty<HtmlNode>();
 
         foreach (var row in table)
         {
