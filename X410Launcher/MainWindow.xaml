@@ -4,8 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X410Launcher"
+        xmlns:converters="clr-namespace:X410Launcher.Converters"
         mc:Ignorable="d"
-        Title="X410Launcher" Height="450" Width="800">
+        x:Name="this"
+        Title="X410Launcher" Height="450" Width="800"
+        DataContext="{StaticResource X410StatusViewModel}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <converters:ProgressStateConverter x:Key="ProgressStateConverter" />
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo ProgressState="{Binding Path=ProgressIsIndeterminate, Mode=OneWay, Converter={StaticResource ProgressStateConverter}, ConverterParameter={StaticResource X410StatusViewModel}}" ProgressValue="{Binding Progress}"/>
+    </Window.TaskbarItemInfo>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click" />

@@ -2,7 +2,12 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using X410Launcher.Tools;
 using X410Launcher.ViewModels;
+using WinIcon = System.Drawing.Icon;
 
 namespace X410Launcher;
 
@@ -11,12 +16,13 @@ namespace X410Launcher;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private readonly X410StatusViewModel _model = new();
+    private readonly X410StatusViewModel _model;
 
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = _model;
+        // Loaded from StaticResource
+        _model = (X410StatusViewModel)DataContext;
 
         RefreshButton_Click(null, null);
     }
@@ -39,6 +45,15 @@ public partial class MainWindow : Window
         KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
+    public static ImageSource GetIcon(string fileName)
+    {
+        var icon = WinIcon.ExtractAssociatedIcon(fileName);
+        return Imaging.CreateBitmapSourceFromHIcon(
+                    icon.Handle,
+                    new Int32Rect(0, 0, icon.Width, icon.Height),
+                    BitmapSizeOptions.FromEmptyOptions());
+    }
+
     private async void RefreshButton_Click(object? sender, RoutedEventArgs? e)
     {
         DisableButtons();
@@ -49,6 +64,10 @@ public partial class MainWindow : Window
             if (_model.Packages.Any())
             {
                 PackagesDataGrid.SelectedIndex = 0;
+            }
+            if (_model.InstalledVersion != null)
+            {
+                Icon = GetIcon(Paths.GetAppFile());
             }
         }
         catch (Exception ex)
