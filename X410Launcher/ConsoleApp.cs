@@ -1,14 +1,12 @@
-﻿using System.ComponentModel;
+﻿using CommandLine;
+using CommandLine.Text;
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System;
 using X410Launcher.ViewModels;
-using CommandLine;
-using System.Threading;
-using CommandLine.Text;
-using System.Diagnostics;
 
 namespace X410Launcher;
 
@@ -21,6 +19,12 @@ public class ConsoleApp
 
         [Option('h', "help", HelpText = "Prints this help and quits immediately.")]
         public bool IsHelp { get; set; } = false;
+
+        [Option("list", HelpText = "Lists versions of X410 available online.")]
+        public bool IsList { get; set; } = false;
+
+        [Option("app-version", HelpText = "Outputs the current version of X410 installed.")]
+        public bool IsAppVersion { get; set; } = false;
 
         [Option('i', "install", HelpText = "Installs the latest version of X410.")]
         public bool IsInstall { get; set; } = false;
@@ -46,7 +50,7 @@ public class ConsoleApp
         public bool Validate(out string? error)
         {
             error = null;
-            if (new[] {IsInstall, IsUninstall, IsUpdate}.Where(flag => flag).Count() > 1)
+            if (new[] { IsInstall, IsUninstall, IsUpdate }.Where(flag => flag).Count() > 1)
             {
                 error = "Only one of --install, --uninstall, and --update options may be specified.";
                 return false;
@@ -117,6 +121,18 @@ public class ConsoleApp
         }
     }
 
+    private void DebugInstalledVersion(X410StatusViewModel model)
+    {
+        if (model.InstalledVersion != null)
+        {
+            ConsoleHelpers.CleanErrorAndWriteLine($"Version installed on machine: {model.InstalledVersion}");
+        }
+        else
+        {
+            ConsoleHelpers.CleanErrorAndWriteLine($"X410 not installed on machine.");
+        }
+    }
+
     private async Task ConsoleMain()
     {
         if (_options.IsHelp)
@@ -134,10 +150,35 @@ public class ConsoleApp
 
         var model = new X410StatusViewModel()!;
 
+        if (_options.IsList || _options.IsAppVersion || _options.IsUpdate || _options.IsInstall)
+        {
+            ConsoleHelpers.CleanErrorAndWriteLine("Collecting data...");
+            await model.RefreshAsync();
+        }
+
+        if (_options.IsAppVersion)
+        {
+            DebugInstalledVersion(model);
+            if (model.InstalledVersion != null)
+            {
+                Console.Out.WriteLine(model.InstalledVersion);
+            }
+            else
+            {
+                // Should write nothing and fail.
+                Environment.ExitCode = 1;
+            }
+        }
+
+        if (_options.IsList)
+        {
+            ConsoleHelpers.CleanErrorAndWriteLine($"Found {model.Packages.Count} packages.");
+            Console.Out.WriteLine(string.Join(Environment.NewLine, model.Packages.Select(p => p.Version)));
+        }
+
         if (_options.IsUpdate || _options.IsInstall)
         {
-            await model.RefreshAsync();
-            ConsoleHelpers.CleanErrorAndWriteLine($"Version installed on machine: {model.InstalledVersion}");
+            DebugInstalledVersion(model);
 
             if (_options.IsInstall)
             {
@@ -181,30 +222,30 @@ public class ConsoleApp
         }
     }
 
-    private static void UpdateConsoleStatus(object sender, PropertyChangedEventArgs e)
+    private static void UpdateConsoleStatus(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is X410StatusViewModel model)
         {
             switch (e.PropertyName)
             {
                 case nameof(X410StatusViewModel.StatusText):
-                {
-                    ConsoleHelpers.CleanErrorAndWriteLine(model.StatusText);
-                    if (!model.ProgressIsIndeterminate)
                     {
-                        ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
+                        ConsoleHelpers.CleanErrorAndWriteLine(model.StatusText);
+                        if (!model.ProgressIsIndeterminate)
+                        {
+                            ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
+                        }
                     }
-                }
-                break;
+                    break;
                 case nameof(X410StatusViewModel.Progress):
-                {
-                    if (!model.ProgressIsIndeterminate)
                     {
-                        Console.CursorLeft = 0;
-                        ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
+                        if (!model.ProgressIsIndeterminate)
+                        {
+                            Console.CursorLeft = 0;
+                            ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
+                        }
                     }
-                }
-                break;
+                    break;
             }
         }
     }
