@@ -65,8 +65,11 @@ public class ConsoleApp
 
     public ConsoleApp(string[] args)
     {
-        _parserResult = Parser.Default.ParseArguments<Options>(args)
-          .WithNotParsed(errors => throw new ArgumentException(string.Join(", ", errors.Select(e => e.Tag.ToString()))));
+        // Somehow accessing Console APIs (Console.Error, like what Parser.Default does),
+        // breaks the streams. We therefore prevent Parser from accessing the console in the early
+        // stages and do everything ourselves.
+        _parserResult = new Parser(s => { s.HelpWriter = null; s.AutoVersion = false; s.AutoHelp = false; })
+            .ParseArguments<Options>(args);
         _options = _parserResult.Value ?? new Options() { IsHelp = true };
     }
 
@@ -75,9 +78,9 @@ public class ConsoleApp
         try
         {
             ConsoleHelpers.SetupConsole(allocate: !_options.IsSilent);
-            if (!_options.IsSilent)
+            if (_options.IsSilent)
             {
-                Console.SetError(Console.Out);
+                Console.SetError(TextWriter.Null);
             }
             ConsoleMain().Wait();
         }
