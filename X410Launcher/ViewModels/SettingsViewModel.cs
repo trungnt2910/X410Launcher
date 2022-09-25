@@ -11,10 +11,6 @@ namespace X410Launcher.ViewModels;
 
 public class SettingsViewModel : ObservableObject
 {
-    const string ArgumentLaunch = "--launch";
-    const string ArgumentUpdate = "--update";
-    const string ArgumentNoUi = "--no-ui";
-
     private bool _startupStartX410;
     public bool StartupStartX410
     {
@@ -27,6 +23,13 @@ public class SettingsViewModel : ObservableObject
     {
         get => _startupUpdateX410;
         set => SetProperty(ref _startupUpdateX410, value);
+    }
+
+    private bool _startupAddIconToTray;
+    public bool StartupAddIconToTray
+    {
+        get => _startupAddIconToTray;
+        set => SetProperty(ref _startupAddIconToTray, value);
     }
 
     public SettingsViewModel()
@@ -49,8 +52,9 @@ public class SettingsViewModel : ObservableObject
             var shortcut = Shortcut.ReadFromFile(path);
             var arguments = (shortcut.StringData.CommandLineArguments ?? string.Empty).SplitArgs().ToHashSet();
 
-            StartupStartX410 = arguments.Contains(ArgumentLaunch);
-            StartupUpdateX410 = arguments.Contains(ArgumentUpdate);
+            StartupStartX410 = arguments.Contains(Switches.LaunchSwitch);
+            StartupUpdateX410 = arguments.Contains(Switches.UpdateSwitch);
+            StartupAddIconToTray = arguments.Contains(Switches.TraySwitch);
         }
         else
         {
@@ -67,16 +71,21 @@ public class SettingsViewModel : ObservableObject
         {
             var launcherFile = Paths.GetLauncherFile();
            
-            var arguments = new List<string>() { ArgumentNoUi };
+            var arguments = new List<string>() { Switches.NoUiSwitch, Switches.SilentSwitch };
             
             if (StartupStartX410)
             {
-                arguments.Add(ArgumentLaunch);
+                arguments.Add(Switches.LaunchSwitch);
             }
 
             if (StartupUpdateX410)
             {
-                arguments.Add(ArgumentUpdate);
+                arguments.Add(Switches.UpdateSwitch);
+            }
+
+            if (StartupAddIconToTray)
+            {
+                arguments.Add(Switches.TraySwitch);
             }
 
             var shortcut = Shortcut.CreateShortcut(launcherFile, string.Join(" ", arguments), Paths.GetAppFile(), 0);

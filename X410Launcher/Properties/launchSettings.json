@@ -8,6 +8,10 @@
       "commandName": "Project",
       "commandLineArgs": "--tray"
     },
+    "X410LauncherUpdateLaunchTray": {
+      "commandName": "Project",
+      "commandLineArgs": "--no-ui --silent --update --launch --tray"
+    },
     "X410LauncherSilentInstall": {
       "commandName": "Project",
       "commandLineArgs": "--no-ui --install --force --launch"

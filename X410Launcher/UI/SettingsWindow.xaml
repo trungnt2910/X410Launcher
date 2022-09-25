@@ -12,6 +12,7 @@
             <StackPanel>
                 <CheckBox IsChecked="{Binding StartupStartX410}" Content="Start X410 on startup." />
                 <CheckBox IsChecked="{Binding StartupUpdateX410}" Content="Update X410 on startup." />
+                <CheckBox IsChecked="{Binding StartupAddIconToTray}" Content="Add X410 launcher to system tray on startup." />
             </StackPanel>
         </GroupBox>
         <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" VerticalAlignment="Bottom" DockPanel.Dock="Bottom">

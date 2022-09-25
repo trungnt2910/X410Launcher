@@ -15,7 +15,7 @@ public class ConsoleApp: IRunnable
 {
     private class Options
     {
-        [Option('s', "silent", HelpText = "Prevents spawning and printing text to the console.")]
+        [Option('s', Switches.Silent, HelpText = "Prevents spawning and printing text to the console.")]
         public bool IsSilent { get; set; } = false;
 
         [Option('h', "help", HelpText = "Prints this help and quits immediately.")]
@@ -30,16 +30,16 @@ public class ConsoleApp: IRunnable
         [Option('i', "install", HelpText = "Installs the latest version of X410.")]
         public bool IsInstall { get; set; } = false;
 
-        [Option('u', "uninstall", HelpText = "Uninstalls X410 from the current machine.")]
+        [Option("uninstall", HelpText = "Uninstalls X410 from the current machine.")]
         public bool IsUninstall { get; set; } = false;
 
-        [Option('u', "update", HelpText = "Updates the current installation of X410.")]
+        [Option('u', Switches.Update, HelpText = "Updates the current installation of X410.")]
         public bool IsUpdate { get; set; } = false;
 
         [Option('f', "force", HelpText = "Forces the installation or update of X410 even when a copy is already present on the machine.")]
         public bool IsForce { get; set; } = false;
 
-        [Option('l', "launch", HelpText = "Launches X410.")]
+        [Option('l', Switches.Launch, HelpText = "Launches X410.")]
         public bool IsLaunch { get; set; } = false;
 
         [Option('k', "kill", HelpText = "Kills X410.")]
@@ -95,7 +95,7 @@ public class ConsoleApp: IRunnable
         catch (Exception e)
         {
             Console.Error.WriteLine(e);
-            throw;
+            return e.HResult;
         }
         finally
         {
@@ -169,7 +169,7 @@ public class ConsoleApp: IRunnable
             else
             {
                 // Should write nothing and fail.
-                Environment.ExitCode = 1;
+                return 1;
             }
         }
 
