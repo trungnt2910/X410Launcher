@@ -21,7 +21,18 @@
     <DockPanel>
         <tb:TaskbarIcon x:Name="NotifyIcon"
                         Visibility="Visible"
-                        TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick" />
+                        TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem x:Name="OpenTrayMenuItem" Header="Open" Click="OpenTrayMenuItem_Click" />
+                    <MenuItem x:Name="ExitTrayMenuItem" Header="Exit" Click="ExitTrayMenuItem_Click" />
+                    <MenuItem x:Name="ExitAndKillX410TrayMenuItem" Header="Exit and Kill X410" Click="ExitAndKillX410TrayMenuItem_Click" />
+                    <Separator />
+                    <MenuItem x:Name="LaunchX410TrayMenuItem" Header="Launch X410" Click="LaunchButton_Click" />
+                    <MenuItem x:Name="KillX410TrayMenuItem" Header="Kill X410" Click="KillButton_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click" />
             <MenuItem Header="About" />

@@ -22,35 +22,23 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        Activated += MainWindow_Activated;
-
         // Loaded from StaticResource
         _model = (X410StatusViewModel)DataContext;
 
-        if (Environment.GetCommandLineArgs().Contains("--tray"))
+        // Custom actions to unhide this window from the taskbar. 
+        Activated += MainWindow_Activated;
+
+        // Set the system tray icon to the launcher's default icon,
+        // instead of a blank transparent one.
+        NotifyIcon.Icon = GetIcon(Paths.GetLauncherFile());
+
+        
+        if (Environment.GetCommandLineArgs().Contains(Switches.TraySwitch))
         {
             MinimizeToTrayButton_Click(null, null);
         }
 
         RefreshButton_Click(null, null);
-    }
-
-    private void DisableButtons()
-    {
-        RefreshButton.IsEnabled = false;
-        InstallButton.IsEnabled = false;
-        UninstallButton.IsEnabled = false;
-        LaunchButton.IsEnabled = false;
-        KillButton.IsEnabled = false;
-    }
-
-    private void EnableButtons()
-    {
-        RefreshButton.IsEnabled = true;
-        InstallButton.IsEnabled = _model.Packages.Any();
-        UninstallButton.IsEnabled = _model.InstalledVersion != null;
-        LaunchButton.IsEnabled = _model.InstalledVersion != null;
-        KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
     private static WinIcon? GetIcon(string fileName)
@@ -69,6 +57,30 @@ public partial class MainWindow : Window
                         BitmapSizeOptions.FromEmptyOptions());
         }
         return null;
+    }
+
+    private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(_model.Api);
+    }
+
+    #region Buttons
+    private void DisableButtons()
+    {
+        RefreshButton.IsEnabled = false;
+        InstallButton.IsEnabled = false;
+        UninstallButton.IsEnabled = false;
+        LaunchButton.IsEnabled = false;
+        KillButton.IsEnabled = false;
+    }
+
+    private void EnableButtons()
+    {
+        RefreshButton.IsEnabled = true;
+        InstallButton.IsEnabled = _model.Packages.Any();
+        UninstallButton.IsEnabled = _model.InstalledVersion != null;
+        LaunchButton.IsEnabled = _model.InstalledVersion != null;
+        KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
     private async void RefreshButton_Click(object? sender, RoutedEventArgs? e)
@@ -96,11 +108,6 @@ public partial class MainWindow : Window
         }
 
         EnableButtons();
-    }
-
-    private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
-    {
-        Process.Start(_model.Api);
     }
 
     private async void InstallButton_Click(object sender, RoutedEventArgs e)
@@ -166,6 +173,7 @@ public partial class MainWindow : Window
 
         EnableButtons();
     }
+    #endregion
 
     private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
     {
@@ -176,6 +184,7 @@ public partial class MainWindow : Window
         window.ShowDialog();
     }
 
+    #region Window
     private void MainWindow_Activated(object? sender, EventArgs? e)
     {
         if (WindowState == WindowState.Minimized)
@@ -200,6 +209,27 @@ public partial class MainWindow : Window
 
     private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
     {
+        Show();
         Activate();
     }
+    #endregion
+
+    #region Tray ContextMenu
+    private void OpenTrayMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        Show();
+        Activate();
+    }
+
+    private void ExitTrayMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Shutdown();
+    }
+
+    private async void ExitAndKillX410TrayMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await _model.KillAsync();
+        Application.Current.Shutdown();
+    }
+    #endregion
 }

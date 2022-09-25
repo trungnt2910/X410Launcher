@@ -76,6 +76,10 @@ internal static class SingleInstanceHelpers
     {
         _ = (state as Application)?.Dispatcher.BeginInvoke(new Action(() =>
         {
+            // For strange reasons, in some cases (for example, when the app
+            // is run with the switch `--tray`), `Activate()` fails without
+            // `Show()` being called in advance.
+            Application.Current.MainWindow.Show();
             _ = Application.Current.MainWindow.Activate();
         }));
     }
