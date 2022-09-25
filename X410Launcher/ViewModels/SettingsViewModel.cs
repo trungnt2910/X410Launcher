@@ -35,7 +35,7 @@ public class SettingsViewModel : ObservableObject
         PropertyChanged += OnPropertyChanged;
     }
 
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         WriteSettingsToShortcut();
     }

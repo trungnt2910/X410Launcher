@@ -13,7 +13,7 @@ public static class Paths
 
     public static string GetLauncherFile()
     {
-        return Process.GetCurrentProcess().MainModule.FileName;
+        return Process.GetCurrentProcess().MainModule!.FileName!;
     }
 
     public static string GetAppInstallPath()

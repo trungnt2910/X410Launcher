@@ -45,13 +45,17 @@ public partial class MainWindow : Window
         KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
-    public static ImageSource GetIcon(string fileName)
+    private static ImageSource? GetIcon(string fileName)
     {
         using var icon = WinIcon.ExtractAssociatedIcon(fileName);
-        return Imaging.CreateBitmapSourceFromHIcon(
-                    icon.Handle,
-                    new Int32Rect(0, 0, icon.Width, icon.Height),
-                    BitmapSizeOptions.FromEmptyOptions());
+        if (icon != null)
+        {
+            return Imaging.CreateBitmapSourceFromHIcon(
+                        icon.Handle,
+                        new Int32Rect(0, 0, icon.Width, icon.Height),
+                        BitmapSizeOptions.FromEmptyOptions());
+        }
+        return null;
     }
 
     private async void RefreshButton_Click(object? sender, RoutedEventArgs? e)
@@ -67,7 +71,7 @@ public partial class MainWindow : Window
             }
             if (_model.InstalledVersion != null)
             {
-                Icon = GetIcon(Paths.GetAppFile());
+                Icon = GetIcon(Paths.GetAppFile()) ?? Icon;
             }
         }
         catch (Exception ex)
