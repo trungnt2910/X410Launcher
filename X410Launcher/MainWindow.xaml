@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:local="clr-namespace:X410Launcher"
         xmlns:converters="clr-namespace:X410Launcher.Converters"
         mc:Ignorable="d"
@@ -18,6 +19,9 @@
         <TaskbarItemInfo ProgressState="{Binding Path=ProgressIsIndeterminate, Mode=OneWay, Converter={StaticResource ProgressStateConverter}, ConverterParameter={StaticResource X410StatusViewModel}}" ProgressValue="{Binding Progress}"/>
     </Window.TaskbarItemInfo>
     <DockPanel>
+        <tb:TaskbarIcon x:Name="NotifyIcon"
+                        Visibility="Visible"
+                        TrayMouseDoubleClick="NotifyIcon_TrayMouseDoubleClick" />
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click" />
             <MenuItem Header="About" />
@@ -55,6 +59,8 @@
                 <Button x:Name="LaunchButton" Content="Launch X410" Click="LaunchButton_Click" IsEnabled="False" />
                 <Border Width="10"/>
                 <Button x:Name="KillButton" Content="Kill X410" Click="KillButton_Click" />
+                <Border Width="10"/>
+                <Button x:Name="MinimizeToTrayButton" Content="Minimize to tray" Click="MinimizeToTrayButton_Click" />
             </StackPanel>
             <StatusBar x:Name="StatusBar" Grid.Row="2">
                 <StatusBar.ItemsPanel>

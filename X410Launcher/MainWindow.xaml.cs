@@ -21,8 +21,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
         // Loaded from StaticResource
         _model = (X410StatusViewModel)DataContext;
+
+        if (Environment.GetCommandLineArgs().Contains("--tray"))
+        {
+            MinimizeToTrayButton_Click(null, null);
+        }
 
         RefreshButton_Click(null, null);
     }
@@ -45,9 +51,14 @@ public partial class MainWindow : Window
         KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
-    private static ImageSource? GetIcon(string fileName)
+    private static WinIcon? GetIcon(string fileName)
     {
-        using var icon = WinIcon.ExtractAssociatedIcon(fileName);
+        return WinIcon.ExtractAssociatedIcon(fileName);
+    }
+
+    private static ImageSource? GetIconImage(string fileName)
+    {
+        using var icon = GetIcon(fileName);
         if (icon != null)
         {
             return Imaging.CreateBitmapSourceFromHIcon(
@@ -71,7 +82,10 @@ public partial class MainWindow : Window
             }
             if (_model.InstalledVersion != null)
             {
-                Icon = GetIcon(Paths.GetAppFile()) ?? Icon;
+                var appFile = Paths.GetAppFile();
+                Icon = GetIconImage(appFile) ?? Icon;
+                NotifyIcon.Icon?.Dispose();
+                NotifyIcon.Icon = GetIcon(appFile);
             }
         }
         catch (Exception ex)
@@ -158,5 +172,26 @@ public partial class MainWindow : Window
             Owner = this
         };
         window.ShowDialog();
+    }
+
+    private void MinimizeToTrayButton_Click(object? sender, RoutedEventArgs? e)
+    {
+        ShowInTaskbar = false;
+        WindowState = WindowState.Minimized;
+    }
+
+    private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+        Topmost = true;  // important
+        Topmost = false; // important
+        Focus();         // important
+
+        ShowInTaskbar = true;
     }
 }

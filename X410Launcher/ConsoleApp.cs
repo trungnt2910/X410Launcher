@@ -44,7 +44,10 @@ public class ConsoleApp
         [Option('k', "kill", HelpText = "Kills X410.")]
         public bool IsKill { get; set; } = false;
 
-        [Option("no-ui", HelpText = "Switches to command line mode", Hidden = true)]
+        [Option("tray", HelpText = "Keeps application in tray after command completes.", Hidden = true)]
+        public bool IsTray { get; set; } = false;
+
+        [Option("no-ui", HelpText = "Switches to command line mode.", Hidden = true)]
         public bool IsNoUi { get; set; } = true;
 
         public bool Validate(out string? error)

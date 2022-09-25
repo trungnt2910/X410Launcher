@@ -21,15 +21,29 @@ namespace X410Launcher
         {
             if (args.Contains("--no-ui"))
             {
-                var application = new ConsoleApp(args);
-                application.Run();
+                LaunchConsole(args);
+                if (args.Contains("--tray"))
+                {
+                    LaunchUI();
+                }
             }
             else
             {
-                var application = new App();
-                application.InitializeComponent();
-                application.Run();
+                LaunchUI();
             }
+        }
+
+        private static void LaunchUI()
+        {
+            var application = new App();
+            application.InitializeComponent();
+            application.Run();
+        }
+
+        private static void LaunchConsole(string[] args)
+        {
+            var application = new ConsoleApp(args);
+            application.Run();
         }
     }
 }
