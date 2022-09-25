@@ -47,7 +47,7 @@ public partial class MainWindow : Window
 
     public static ImageSource GetIcon(string fileName)
     {
-        var icon = WinIcon.ExtractAssociatedIcon(fileName);
+        using var icon = WinIcon.ExtractAssociatedIcon(fileName);
         return Imaging.CreateBitmapSourceFromHIcon(
                     icon.Handle,
                     new Int32Rect(0, 0, icon.Width, icon.Height),
