@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -14,7 +15,7 @@ namespace X410Launcher;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : MetroWindow
 {
     private readonly X410StatusViewModel _model;
 
@@ -61,7 +62,7 @@ public partial class MainWindow : Window
 
     private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(_model.Api);
+        Process.Start(new ProcessStartInfo() { FileName = _model.Api, UseShellExecute = true });
     }
 
     #region Buttons

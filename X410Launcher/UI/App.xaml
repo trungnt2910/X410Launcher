@@ -5,6 +5,14 @@
              xmlns:viewmodels="clr-namespace:X410Launcher.ViewModels"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <viewmodels:X410StatusViewModel x:Key="X410StatusViewModel" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <viewmodels:X410StatusViewModel x:Key="X410StatusViewModel" />
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
