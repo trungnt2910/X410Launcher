@@ -6,11 +6,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using X410Launcher.Tools;
 using X410Launcher.ViewModels;
 
 namespace X410Launcher;
 
-public class ConsoleApp
+public class ConsoleApp: IRunnable
 {
     private class Options
     {
@@ -44,10 +45,10 @@ public class ConsoleApp
         [Option('k', "kill", HelpText = "Kills X410.")]
         public bool IsKill { get; set; } = false;
 
-        [Option("tray", HelpText = "Keeps application in tray after command completes.", Hidden = true)]
+        [Option(Switches.Tray, HelpText = "Keeps application in tray after command completes.", Hidden = true)]
         public bool IsTray { get; set; } = false;
 
-        [Option("no-ui", HelpText = "Switches to command line mode.", Hidden = true)]
+        [Option(Switches.NoUi, HelpText = "Switches to command line mode.", Hidden = true)]
         public bool IsNoUi { get; set; } = true;
 
         public bool Validate(out string? error)
@@ -80,7 +81,7 @@ public class ConsoleApp
         _options = _parserResult.Value ?? new Options() { IsHelp = true };
     }
 
-    public void Run()
+    public int Run()
     {
         try
         {
@@ -89,7 +90,7 @@ public class ConsoleApp
             {
                 Console.SetError(TextWriter.Null);
             }
-            ConsoleMain().Wait();
+            return ConsoleMain().Result;
         }
         catch (Exception e)
         {
@@ -136,19 +137,18 @@ public class ConsoleApp
         }
     }
 
-    private async Task ConsoleMain()
+    private async Task<int> ConsoleMain()
     {
         if (_options.IsHelp)
         {
             DisplayHelp();
-            return;
+            return 0;
         }
 
         if (!_options.Validate(out string? err))
         {
             Console.Error.WriteLine(err);
-            Environment.ExitCode = 1;
-            return;
+            return 1;
         }
 
         var model = new X410StatusViewModel()!;
@@ -223,6 +223,8 @@ public class ConsoleApp
         {
             await model.KillAsync();
         }
+
+        return 0;
     }
 
     private static void UpdateConsoleStatus(object? sender, PropertyChangedEventArgs e)

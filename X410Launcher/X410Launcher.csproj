@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ApplicationDefinition Remove="App.xaml" />
-    <Page Include="App.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />

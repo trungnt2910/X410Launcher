@@ -22,6 +22,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        Activated += MainWindow_Activated;
+
         // Loaded from StaticResource
         _model = (X410StatusViewModel)DataContext;
 
@@ -174,24 +176,30 @@ public partial class MainWindow : Window
         window.ShowDialog();
     }
 
-    private void MinimizeToTrayButton_Click(object? sender, RoutedEventArgs? e)
-    {
-        ShowInTaskbar = false;
-        WindowState = WindowState.Minimized;
-    }
-
-    private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    private void MainWindow_Activated(object? sender, EventArgs? e)
     {
         if (WindowState == WindowState.Minimized)
         {
             WindowState = WindowState.Normal;
         }
 
-        Activate();
+        Show();
         Topmost = true;  // important
         Topmost = false; // important
         Focus();         // important
 
         ShowInTaskbar = true;
+    }
+
+    private void MinimizeToTrayButton_Click(object? sender, RoutedEventArgs? e)
+    {
+        Hide();
+        ShowInTaskbar = false;
+        WindowState = WindowState.Minimized;
+    }
+
+    private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    {
+        Activate();
     }
 }
