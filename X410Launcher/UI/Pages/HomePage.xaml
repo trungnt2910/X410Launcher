@@ -1,0 +1,78 @@
+﻿<Page x:Class="X410Launcher.UI.Pages.HomePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:local="clr-namespace:X410Launcher.UI.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Home"
+      DataContext="{StaticResource X410StatusViewModel}">
+
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="60"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="10">
+            <TextBlock FontSize="{DynamicResource ControlContentThemeFontSize}">
+                <TextBlock.Foreground>
+                    <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                </TextBlock.Foreground>
+                <Span>Installed version: </Span>
+                <Run Text="{Binding InstalledVersion, Mode=OneWay}" />
+                <LineBreak />
+                <Span>Latest version: </Span>
+                <Run Text="{Binding LatestVersion, Mode=OneWay}" />
+            </TextBlock>
+            <Border Height="10" />
+            <TextBlock FontSize="{DynamicResource ControlContentThemeFontSize}">
+                <TextBlock.Foreground>
+                    <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                </TextBlock.Foreground>
+                <Span>Packages found on </Span>
+                <Hyperlink Click="ApiHyperlink_Click">Microsoft Store API</Hyperlink>
+                <Span> for ID </Span>
+                <Run Text="{Binding AppId, Mode=OneWay}"/>
+                <Span>:</Span>
+            </TextBlock>
+            <DataGrid x:Name="PackagesDataGrid" ItemsSource="{Binding Packages}" IsReadOnly="True">
+            </DataGrid>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft" Margin="10, 0, 10, 0">
+            <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+            <Border Width="10"/>
+            <Button x:Name="InstallButton" Content="Install selected version" Click="InstallButton_Click" IsEnabled="False" />
+            <Border Width="10"/>
+            <Button x:Name="UninstallButton" Content="Uninstall X410" Click="UninstallButton_Click" IsEnabled="False" />
+            <Border Width="10"/>
+            <Button x:Name="LaunchButton" Content="Launch X410" Click="LaunchButton_Click" IsEnabled="False" />
+            <Border Width="10"/>
+            <Button x:Name="KillButton" Content="Kill X410" Click="KillButton_Click" />
+        </StackPanel>
+        <StatusBar x:Name="StatusBar" Grid.Row="2">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock x:Name="StatusTextBlock" Text="{Binding StatusText}" />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <ProgressBar x:Name="StatusProgressBar"
+                            IsIndeterminate="{Binding ProgressIsIndeterminate}"
+                            Value="{Binding Progress, Mode=OneWay}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Page>

@@ -1,11 +1,11 @@
-﻿using MahApps.Metro.Controls;
-using System;
-using System.Diagnostics;
+﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Wpf.Ui.Controls;
 using X410Launcher.Tools;
 using X410Launcher.ViewModels;
 using WinIcon = System.Drawing.Icon;
@@ -15,7 +15,7 @@ namespace X410Launcher;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : MetroWindow
+public partial class MainWindow : UiWindow
 {
     private readonly X410StatusViewModel _model;
 
@@ -25,21 +25,18 @@ public partial class MainWindow : MetroWindow
 
         // Loaded from StaticResource
         _model = (X410StatusViewModel)DataContext;
+        _model.PropertyChanged += UpdateIcon;
+
+        // WPFUI theme watchers.
+        Loaded += MainWindow_Loaded;
 
         // Custom actions to unhide this window from the taskbar. 
         Activated += MainWindow_Activated;
 
-        // Set the system tray icon to the launcher's default icon,
-        // instead of a blank transparent one.
-        NotifyIcon.Icon = GetIcon(Paths.GetLauncherFile());
-
-        
         if (Environment.GetCommandLineArgs().Contains(Switches.TraySwitch))
         {
             MinimizeToTrayButton_Click(null, null);
         }
-
-        RefreshButton_Click(null, null);
     }
 
     private static WinIcon? GetIcon(string fileName)
@@ -60,132 +57,27 @@ public partial class MainWindow : MetroWindow
         return null;
     }
 
-    private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
+    private void UpdateIcon(object sender, PropertyChangedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo() { FileName = _model.Api, UseShellExecute = true });
-    }
-
-    #region Buttons
-    private void DisableButtons()
-    {
-        RefreshButton.IsEnabled = false;
-        InstallButton.IsEnabled = false;
-        UninstallButton.IsEnabled = false;
-        LaunchButton.IsEnabled = false;
-        KillButton.IsEnabled = false;
-    }
-
-    private void EnableButtons()
-    {
-        RefreshButton.IsEnabled = true;
-        InstallButton.IsEnabled = _model.Packages.Any();
-        UninstallButton.IsEnabled = _model.InstalledVersion != null;
-        LaunchButton.IsEnabled = _model.InstalledVersion != null;
-        KillButton.IsEnabled = _model.InstalledVersion != null;
-    }
-
-    private async void RefreshButton_Click(object? sender, RoutedEventArgs? e)
-    {
-        DisableButtons();
-
-        try
+        if (e.PropertyName == nameof(X410StatusViewModel.InstalledVersion))
         {
-            await _model.RefreshAsync();
-            if (_model.Packages.Any())
-            {
-                PackagesDataGrid.SelectedIndex = 0;
-            }
             if (_model.InstalledVersion != null)
             {
-                var appFile = Paths.GetAppFile();
-                Icon = GetIconImage(appFile) ?? Icon;
-                NotifyIcon.Icon?.Dispose();
-                NotifyIcon.Icon = GetIcon(appFile);
+                RootTitleBar.Tray.Icon = RootTitleBar.Icon = Icon = GetIconImage(Paths.GetAppFile());
             }
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString(), "Failed to fetch packages", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        EnableButtons();
-    }
-
-    private async void InstallButton_Click(object sender, RoutedEventArgs e)
-    {
-        DisableButtons();
-
-        try
-        {
-            await _model.InstallPackageAsync(PackagesDataGrid.SelectedIndex);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString(), "Failed to install packages", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        EnableButtons();
-    }
-
-    private async void UninstallButton_Click(object sender, RoutedEventArgs e)
-    {
-        DisableButtons();
-
-        try
-        {
-            await _model.UninstallPackageAsync();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString(), "Failed to uninstall packages", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        EnableButtons();
-    }
-
-    private async void KillButton_Click(object sender, RoutedEventArgs e)
-    {
-        DisableButtons();
-
-        try
-        {
-            await _model.KillAsync();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString(), "Failed to kill X410", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        EnableButtons();
-    }
-
-    private void LaunchButton_Click(object sender, RoutedEventArgs e)
-    {
-        DisableButtons();
-
-        try
-        {
-            _model.Launch();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.ToString(), "Failed to start X410", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        EnableButtons();
-    }
-    #endregion
-
-    private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        var window = new SettingsWindow()
-        {
-            Owner = this
-        };
-        window.ShowDialog();
     }
 
     #region Window
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        Wpf.Ui.Appearance.Watcher.Watch(
+            this,                                  // Window class
+            Wpf.Ui.Appearance.BackgroundType.Mica, // Background type
+            true                                   // Whether to change accents automatically
+        );
+    }
+
     private void MainWindow_Activated(object? sender, EventArgs? e)
     {
         if (WindowState == WindowState.Minimized)
@@ -208,7 +100,7 @@ public partial class MainWindow : MetroWindow
         WindowState = WindowState.Minimized;
     }
 
-    private void NotifyIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
+    private void NotifyIcon_LeftDoubleClick(object sender, RoutedEventArgs e)
     {
         Show();
         Activate();
@@ -231,6 +123,16 @@ public partial class MainWindow : MetroWindow
     {
         await _model.KillAsync();
         Application.Current.Shutdown();
+    }
+
+    private void LaunchX10TrayMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        _model.Launch();
+    }
+
+    private async void KillX410TrayMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await _model.KillAsync();
     }
     #endregion
 }
