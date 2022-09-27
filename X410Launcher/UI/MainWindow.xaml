@@ -9,7 +9,7 @@
         xmlns:pages="clr-namespace:X410Launcher.UI.Pages"
         mc:Ignorable="d"
         x:Name="this"
-        Title="X410Launcher" Height="750" Width="1300"
+        Title="X410Launcher" Height="720" Width="1280"
         Background="{wpfui:ThemeResource ApplicationBackgroundBrush}"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Mica"

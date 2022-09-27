@@ -16,8 +16,13 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Margin="10">
-            <TextBlock FontSize="{DynamicResource ControlContentThemeFontSize}">
+        <Grid Grid.Row="0" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" FontSize="{DynamicResource ControlContentThemeFontSize}">
                 <TextBlock.Foreground>
                     <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
                 </TextBlock.Foreground>
@@ -27,8 +32,7 @@
                 <Span>Latest version: </Span>
                 <Run Text="{Binding LatestVersion, Mode=OneWay}" />
             </TextBlock>
-            <Border Height="10" />
-            <TextBlock FontSize="{DynamicResource ControlContentThemeFontSize}">
+            <TextBlock Grid.Row="1" FontSize="{DynamicResource ControlContentThemeFontSize}">
                 <TextBlock.Foreground>
                     <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
                 </TextBlock.Foreground>
@@ -38,9 +42,22 @@
                 <Run Text="{Binding AppId, Mode=OneWay}"/>
                 <Span>:</Span>
             </TextBlock>
-            <DataGrid x:Name="PackagesDataGrid" ItemsSource="{Binding Packages}" IsReadOnly="True">
-            </DataGrid>
-        </StackPanel>
+            <wpfui:DataGrid x:Name="PackagesDataGrid" Grid.Row="2" 
+                      ItemsSource="{Binding Packages}" IsReadOnly="True"
+                      RowStyle="{StaticResource DefaultDataGridRowStyle}"
+                      AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Package Name" Binding="{Binding PackageName}" Width="Auto"/>
+                    <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="Auto"/>
+                    <DataGridTextColumn Header="Architecture" Binding="{Binding Architecture}" Width="Auto"/>
+                    <DataGridTextColumn Header="Format" Binding="{Binding Format}" Width="Auto"/>
+                    <DataGridTextColumn Header="SHA1" Binding="{Binding SHA1}" Width="Auto"/>
+                    <DataGridTextColumn Header="Expires at" Binding="{Binding ExpireTime}" Width="Auto"/>
+                    <DataGridTextColumn Header="URL" Binding="{Binding URL}" Width="Auto"/>
+                </DataGrid.Columns>
+            </wpfui:DataGrid>
+        </Grid>
         <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft" Margin="10, 0, 10, 0">
             <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
             <Border Width="10"/>

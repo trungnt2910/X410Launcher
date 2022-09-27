@@ -57,7 +57,7 @@ public partial class MainWindow : UiWindow
         return null;
     }
 
-    private void UpdateIcon(object sender, PropertyChangedEventArgs e)
+    private void UpdateIcon(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(X410StatusViewModel.InstalledVersion))
         {
