@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using X410Launcher.Tools;
+using X410Launcher.UI.Pages;
 using X410Launcher.ViewModels;
 using WinIcon = System.Drawing.Icon;
 
@@ -15,7 +17,7 @@ namespace X410Launcher;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : UiWindow
+public partial class MainWindow : FluentWindow
 {
     private readonly X410StatusViewModel _model;
 
@@ -30,7 +32,7 @@ public partial class MainWindow : UiWindow
         // WPFUI theme watchers.
         Loaded += MainWindow_Loaded;
 
-        // Custom actions to unhide this window from the taskbar. 
+        // Custom actions to unhide this window from the taskbar.
         Activated += MainWindow_Activated;
 
         if (Environment.GetCommandLineArgs().Contains(Switches.TraySwitch))
@@ -63,7 +65,8 @@ public partial class MainWindow : UiWindow
         {
             if (_model.InstalledVersion != null)
             {
-                RootTitleBar.Tray.Icon = RootTitleBar.Icon = Icon = GetIconImage(Paths.GetAppFile());
+                Tray.Icon = Icon = GetIconImage(Paths.GetAppFile()) ?? Icon;
+                RootTitleBar.Icon = new ImageIcon() { Source = Icon };
             }
         }
     }
@@ -71,11 +74,18 @@ public partial class MainWindow : UiWindow
     #region Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        Wpf.Ui.Appearance.Watcher.Watch(
+        // Weird bug when WPFUI does not apply the system theme
+        // when a window is already being watched:
+        // https://github.com/lepoco/wpfui/blob/7535b9135b24acae83b7097023928a8efbd153aa/src/Wpf.Ui/Appearance/SystemThemeWatcher.cs#L56
+        ApplicationThemeManager.ApplySystemTheme(true);
+        SystemThemeWatcher.Watch(
             this,                                  // Window class
-            Wpf.Ui.Appearance.BackgroundType.Mica, // Background type
+            WindowBackdropType.Mica,               // Background type
             true                                   // Whether to change accents automatically
         );
+
+        // WPFUI v3 NavigationView does not select any page by default.
+        RootNavigation.Navigate(typeof(HomePage));
     }
 
     private void MainWindow_Activated(object? sender, EventArgs? e)
@@ -98,6 +108,16 @@ public partial class MainWindow : UiWindow
         Hide();
         ShowInTaskbar = false;
         WindowState = WindowState.Minimized;
+    }
+
+    private void MinimizeToTrayButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        MinimizeToTrayButton.Hover();
+    }
+
+    private void MinimizeToTrayButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        MinimizeToTrayButton.RemoveHover();
     }
 
     private void NotifyIcon_LeftDoubleClick(object sender, RoutedEventArgs e)

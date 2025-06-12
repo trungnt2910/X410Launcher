@@ -12,6 +12,7 @@
                 <wpfui:ControlsDictionary />
 
                 <ResourceDictionary Source="pack://application:,,,/UI/Styles/DataGridRow.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/UI/Styles/MinimizeToTrayTitleBarButton.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <viewmodels:X410StatusViewModel x:Key="X410StatusViewModel" />

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
@@ -10,11 +10,12 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
     <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="WPF-UI" Version="2.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.6" />
+    <PackageReference Include="WPF-UI" Version="4.0.3" />
+    <PackageReference Include="WPF-UI.Tray" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFrameworkMoniker.StartsWith('.NETFramework'))">
