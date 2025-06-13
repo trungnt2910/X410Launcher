@@ -29,4 +29,9 @@ public static class Paths
     {
         return Path.Combine(GetAppInstallPath(), "X410", "X410.exe");
     }
+
+    public static string GetHelperDllFile()
+    {
+        return Path.Combine(GetAppInstallPath(), "X410", "X410.dll");
+    }
 }

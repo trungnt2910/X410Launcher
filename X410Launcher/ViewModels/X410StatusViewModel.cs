@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace X410Launcher.ViewModels
         public const string StatusTextDownloadArchNoSupport = "Your operating system architecture, {0}, is not supported.";
 
         public const string StatusTextExtracting = "Extracting {0} to {1}...";
+        public const string StatusTextExtractingHelper = "Extracting helper library to {0}...";
         public const string StatusTextPatching = "Patching {0}...";
 
         public const string StatusTextInstallFailed = "Failed to install package.";
@@ -289,27 +291,26 @@ namespace X410Launcher.ViewModels
                         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
                         await Task.Run(() =>
                         {
-                            if (Path.GetFileName(fullPath)
-                                .Equals("X410.exe", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                using var memory = new MemoryStream();
-                                using (var stream = entry.Open())
-                                {
-                                    stream.CopyTo(memory);
-                                }
-
-                                _ExtractPatched(
-                                    manifest.Identity.ProcessorArchitecture,
-                                    fullPath,
-                                    memory.ToArray()
-                                );
-                            }
-                            else
-                            {
-                                entry.ExtractToFile(fullPath, overwrite: true);
-                            }
+                            entry.ExtractToFile(fullPath, overwrite: true);
                         });
                         extractedLength += entry.CompressedLength;
+                    }
+                }
+
+                using (var helperStream = Assembly.GetExecutingAssembly()
+                    .GetManifestResourceStream(
+                        $"X410Launcher.Native.X410.{RuntimeInformation.OSArchitecture}.dll"
+                ))
+                {
+                    if (helperStream is not null)
+                    {
+                        StatusText = StatusTextExtractingHelper;
+                        await Task.Run(() =>
+                        {
+                            using var memory = new MemoryStream();
+                            helperStream.CopyTo(memory);
+                            File.WriteAllBytes(Paths.GetHelperDllFile(), memory.ToArray());
+                        });
                     }
                 }
 
@@ -360,7 +361,7 @@ namespace X410Launcher.ViewModels
 
         public void Launch()
         {
-            Process.Start(Paths.GetAppFile());
+            Launcher.Launch(Paths.GetAppFile());
 
             StatusText = StatusTextStarted;
         }
