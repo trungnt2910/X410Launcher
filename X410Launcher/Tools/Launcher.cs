@@ -18,7 +18,7 @@ public static class Launcher
     static Launcher()
     {
         using var launcherStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
-            $"X410Launcher.Native.Launcher.{RuntimeInformation.OSArchitecture}.dll"
+            $"X410Launcher.Native.Launcher.{RuntimeInformation.ProcessArchitecture}.dll"
         );
 
         if (launcherStream is not null)
