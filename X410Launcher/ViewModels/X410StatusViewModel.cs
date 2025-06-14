@@ -268,6 +268,8 @@ namespace X410Launcher.ViewModels
 
             packageStream.Seek(0, SeekOrigin.Begin);
 
+            var wasRunning = X410.AreYouThere();
+
             try
             {
                 switch (selectedPackage.Format)
@@ -389,6 +391,13 @@ namespace X410Launcher.ViewModels
                 StatusText = StatusTextInstallFailed;
                 RefreshInstalledVersion();
                 throw;
+            }
+            finally
+            {
+                if (wasRunning)
+                {
+                    await LaunchAsync();
+                }
             }
         }
 
