@@ -514,7 +514,7 @@ namespace X410Launcher.ViewModels
                 {
                     try
                     {
-                        Launcher.Launch(Paths.GetAppFile());
+                        Launcher.Launch();
                     }
                     catch
                     {
@@ -530,7 +530,7 @@ namespace X410Launcher.ViewModels
                         X410.SetFocus();
 
                         // Launch settings app for more initial visibility.
-                        Launcher.LaunchSettings(Paths.GetSettingsAppFile());
+                        Launcher.LaunchSettings();
 
                         Progress = ProgressMax;
                         StatusText = StatusTextLaunched;

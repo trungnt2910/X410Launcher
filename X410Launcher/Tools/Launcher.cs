@@ -32,20 +32,22 @@ public static class Launcher
         }
     }
 
-    public static void Launch(string path)
+    public static void Launch()
     {
+        var app = Paths.GetAppFile();
+
         if (StartProcessPreloaded is not null)
         {
-            if (StartProcessPreloaded(path, Paths.GetHelperDllFile()))
+            if (StartProcessPreloaded(app, Paths.GetHelperDllFile()))
             {
                 return;
             }
         }
 
-        Process.Start(path);
+        Process.Start(app);
     }
 
-    public static void LaunchSettings(string path)
+    public static void LaunchSettings()
     {
         Process.Start(new ProcessStartInfo()
         {
