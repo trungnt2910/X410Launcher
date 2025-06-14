@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using X410Launcher.Tools;
@@ -25,6 +26,10 @@ namespace X410Launcher.ViewModels
         public const string StatusTextDownloadExpired = "The selected package has expired. Please refresh your package list.";
         public const string StatusTextDownloadFailed = "Failed to download package.";
         public const string StatusTextDownloadArchNoSupport = "Your operating system architecture, {0}, is not supported.";
+
+        public const string StatusTextChecksumVerifying = "Verifying package checksum...";
+        public const string StatusTextChecksumVerifyFailed = "Checksum verification failed. The package may be corrupted. Please refresh and try again.";
+        public const string StatusTextChecksumVerifyCompleted = "Checksum verification done.";
 
         public const string StatusTextExtracting = "Extracting {0} to {1}...";
         public const string StatusTextExtractingHelper = "Extracting helper library to {0}...";
@@ -283,7 +288,29 @@ namespace X410Launcher.ViewModels
                 throw;
             }
 
-            packageStream.Seek(0, SeekOrigin.Begin);
+            using (var sha1 = SHA1.Create())
+            {
+                StatusText = StatusTextChecksumVerifying;
+                Progress = -1;
+
+                packageStream.Seek(0, SeekOrigin.Begin);
+                var hash = sha1.ComputeHash(packageStream);
+                var hashString = string.Concat(hash.Select(h => h.ToString("x2")));
+
+                Progress = ProgressMax;
+
+                if (string.Equals(
+                    hashString, selectedPackage.SHA1, StringComparison.InvariantCultureIgnoreCase
+                ))
+                {
+                    StatusText = StatusTextChecksumVerifyCompleted;
+                }
+                else
+                {
+                    StatusText = StatusTextChecksumVerifyFailed;
+                    return;
+                }
+            }
 
             try
             {
@@ -291,46 +318,47 @@ namespace X410Launcher.ViewModels
                 {
                     case PackageFormat.appxbundle:
                     case PackageFormat.msixbundle:
+                    {
+                        packageStream.Seek(0, SeekOrigin.Begin);
+                        using var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true);
+                        using var appxBundleManifestStream =
+                            zipArchive.Entries.First(e => e.FullName == "AppxMetadata/AppxBundleManifest.xml").Open();
+                        var serializer = new XmlSerializer(typeof(Models.AppxBundle.Bundle));
+                        var bundle = (serializer.Deserialize(appxBundleManifestStream) as Models.AppxBundle.Bundle)!;
+                        var architecture = RuntimeInformation.OSArchitecture switch
                         {
-                            using var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true);
-                            using var appxBundleManifestStream =
-                                zipArchive.Entries.First(e => e.FullName == "AppxMetadata/AppxBundleManifest.xml").Open();
-                            var serializer = new XmlSerializer(typeof(Models.AppxBundle.Bundle));
-                            var bundle = (serializer.Deserialize(appxBundleManifestStream) as Models.AppxBundle.Bundle)!;
-                            var architecture = RuntimeInformation.OSArchitecture switch
-                            {
-                                Architecture.X64 => Models.AppxBundle.PackageArchitecture.X64,
-                                Architecture.X86 => Models.AppxBundle.PackageArchitecture.X86,
-                                Architecture.Arm64 => Models.AppxBundle.PackageArchitecture.Arm64,
-                                Architecture.Arm => Models.AppxBundle.PackageArchitecture.Arm,
-                                _ => Models.AppxBundle.PackageArchitecture.Neutral
-                            };
-                            var package = bundle.Packages
-                                    .FirstOrDefault(p =>
-                                        p.Architecture == architecture &&
-                                        p.Type == Models.AppxBundle.PackageType.Application);
-                            if (package == null)
-                            {
-                                var error = string.Format(StatusTextDownloadArchNoSupport, RuntimeInformation.OSArchitecture);
-                                StatusText = error;
-                                Progress = ProgressMin;
-                                throw new InvalidOperationException(error);
-                            }
-                            using var newPackageZipStream = zipArchive.Entries.First(e => e.FullName == package.FileName).Open();
-                            // We don't know if disposing the old stream corrupts the zip archive.
-                            // Therefore we use this temporary stream instead.
-                            using var newPackageMemoryStream = new MemoryStream();
-                            await newPackageZipStream.CopyToAsync(newPackageMemoryStream);
-                            newPackageMemoryStream.Seek(0, SeekOrigin.Begin);
-
-                            packageStream.SetLength(newPackageMemoryStream.Length);
-                            packageStream.Seek(0, SeekOrigin.Begin);
-                            await newPackageMemoryStream.CopyToAsync(packageStream);
-
-                            // Now, we have the desired appx file.
-                            packageStream.Seek(0, SeekOrigin.Begin);
+                            Architecture.X64 => Models.AppxBundle.PackageArchitecture.X64,
+                            Architecture.X86 => Models.AppxBundle.PackageArchitecture.X86,
+                            Architecture.Arm64 => Models.AppxBundle.PackageArchitecture.Arm64,
+                            Architecture.Arm => Models.AppxBundle.PackageArchitecture.Arm,
+                            _ => Models.AppxBundle.PackageArchitecture.Neutral
+                        };
+                        var package = bundle.Packages
+                                .FirstOrDefault(p =>
+                                    p.Architecture == architecture &&
+                                    p.Type == Models.AppxBundle.PackageType.Application);
+                        if (package == null)
+                        {
+                            var error = string.Format(StatusTextDownloadArchNoSupport, RuntimeInformation.OSArchitecture);
+                            StatusText = error;
+                            Progress = ProgressMin;
+                            throw new InvalidOperationException(error);
                         }
-                        break;
+                        using var newPackageZipStream = zipArchive.Entries.First(e => e.FullName == package.FileName).Open();
+                        // We don't know if disposing the old stream corrupts the zip archive.
+                        // Therefore we use this temporary stream instead.
+                        using var newPackageMemoryStream = new MemoryStream();
+                        await newPackageZipStream.CopyToAsync(newPackageMemoryStream);
+                        newPackageMemoryStream.Seek(0, SeekOrigin.Begin);
+
+                        packageStream.SetLength(newPackageMemoryStream.Length);
+                        packageStream.Seek(0, SeekOrigin.Begin);
+                        await newPackageMemoryStream.CopyToAsync(packageStream);
+
+                        // Now, we have the desired appx file.
+                        packageStream.Seek(0, SeekOrigin.Begin);
+                    }
+                    break;
                     case PackageFormat.msix:
                     case PackageFormat.appx:
                         // Do nothing, we already have the appx stream.
