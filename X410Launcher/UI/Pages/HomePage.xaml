@@ -20,33 +20,29 @@
         <Grid Grid.Row="0" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="1*" />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" FontSize="{DynamicResource ControlContentThemeFontSize}">
-                <TextBlock.Foreground>
-                    <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
-                </TextBlock.Foreground>
-                <Span>Installed version: </Span>
-                <Run Text="{Binding InstalledVersion, Mode=OneWay}" />
-                <LineBreak />
-                <Span>Latest version: </Span>
-                <Run Text="{Binding LatestVersion, Mode=OneWay}" />
-            </TextBlock>
-            <TextBlock Grid.Row="1" FontSize="{DynamicResource ControlContentThemeFontSize}">
-                <TextBlock.Foreground>
-                    <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
-                </TextBlock.Foreground>
-                <Span>Packages found on </Span>
-                <Hyperlink Click="ApiHyperlink_Click">Microsoft Store API</Hyperlink>
-                <Span> for ID </Span>
-                <Run Text="{Binding AppId, Mode=OneWay}"/>
-                <Span>:</Span>
-            </TextBlock>
-            <wpfui:DataGrid x:Name="PackagesDataGrid" Grid.Row="2"
-                      ItemsSource="{Binding Packages}" IsReadOnly="True"
-                      RowStyle="{StaticResource DefaultDataGridRowStyle}"
-                      AutoGenerateColumns="False">
+
+            <StackPanel Grid.Row="0" Margin="5, 5, 5, 5">
+                <TextBlock FontSize="{DynamicResource ControlContentThemeFontSize}">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                    </TextBlock.Foreground>
+                    <Span>Packages found on the</Span>
+                    <Hyperlink Click="ApiHyperlink_Click" ToolTip="{Binding Api, Mode=OneWay}">
+                        Microsoft Store API
+                    </Hyperlink>
+                    <Span> for ID </Span>
+                    <Hyperlink Click="StoreHyperlink_Click" ToolTip="{Binding StoreLink, Mode=OneWay}">
+                        <Run Text="{Binding AppId, Mode=OneWay}"/>
+                    </Hyperlink><Span>:</Span>
+                </TextBlock>
+            </StackPanel>
+
+            <wpfui:DataGrid x:Name="PackagesDataGrid" Grid.Row="1"
+                            ItemsSource="{Binding Packages}" IsReadOnly="True"
+                            RowStyle="{StaticResource DefaultDataGridRowStyle}"
+                            AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Package Name" Binding="{Binding PackageName}" Width="Auto"/>
                     <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto"/>
@@ -59,17 +55,97 @@
                 </DataGrid.Columns>
             </wpfui:DataGrid>
         </Grid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft" Margin="10, 0, 10, 0">
-            <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
-            <Border Width="10"/>
-            <Button x:Name="InstallButton" Content="Install selected version" Click="InstallButton_Click" IsEnabled="False" />
-            <Border Width="10"/>
-            <Button x:Name="UninstallButton" Content="Uninstall X410" Click="UninstallButton_Click" IsEnabled="False" />
-            <Border Width="10"/>
-            <Button x:Name="LaunchButton" Content="Launch X410" Click="LaunchButton_Click" IsEnabled="False" />
-            <Border Width="10"/>
-            <Button x:Name="KillButton" Content="Kill X410" Click="KillButton_Click" />
-        </StackPanel>
+        <Grid Grid.Row="1" Margin="10, 0, 10, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Margin="0, 0, 5, 0"
+                               FontSize="{DynamicResource ControlContentThemeFontSize}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                        </TextBlock.Foreground>
+                        <Span FontWeight="DemiBold">Installed:</Span>
+                        <LineBreak />
+                        <Span FontWeight="DemiBold">Latest:</Span>
+                    </TextBlock>
+
+                    <TextBlock Grid.Column="1" FontSize="{DynamicResource ControlContentThemeFontSize}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                        </TextBlock.Foreground>
+                        <Run Text="{Binding InstalledVersion, Mode=OneWay}"  />
+                        <LineBreak />
+                        <Run Text="{Binding LatestVersion, Mode=OneWay}"/>
+                    </TextBlock>
+                </Grid>
+
+                <Border Width="15"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <Grid Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Margin="0, 0, 5, 0"
+                               FontSize="{DynamicResource ControlContentThemeFontSize}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                        </TextBlock.Foreground>
+                        <Span FontWeight="DemiBold">Architecture:</Span>
+                        <LineBreak />
+                        <Span FontWeight="DemiBold">Subscription:</Span>
+                    </TextBlock>
+
+                    <TextBlock Grid.Column="1" FontSize="{DynamicResource ControlContentThemeFontSize}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                        </TextBlock.Foreground>
+                        <Run Text="{Binding InstalledArchitecture, Mode=OneWay}" />
+                        <LineBreak />
+                        <Run Text="{Binding SubscriptionStatus, Mode=OneWay}"/>
+                    </TextBlock>
+                </Grid>
+
+                <Border Width="15"
+                        Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <TextBlock Grid.Column="0"
+                           Margin="0, 0, 5, 0"
+                           FontSize="{DynamicResource ControlContentThemeFontSize}"
+                           Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock.Foreground>
+                        <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
+                    </TextBlock.Foreground>
+                    <Span FontWeight="DemiBold">Display:</Span>
+                    <Run Text="{Binding DisplayNumber, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">
+                <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
+                <Border Width="10"/>
+                <Button x:Name="InstallButton" Content="Install selected version" Click="InstallButton_Click" IsEnabled="False" />
+                <Border Width="10"/>
+                <Button x:Name="UninstallButton" Content="Uninstall X410" Click="UninstallButton_Click" IsEnabled="False" />
+                <Border Width="10"/>
+                <Button x:Name="LaunchButton" Content="Launch X410" Click="LaunchButton_Click" IsEnabled="False" />
+                <Border Width="10"/>
+                <Button x:Name="KillButton" Content="Kill X410" Click="KillButton_Click" />
+            </StackPanel>
+        </Grid>
         <StatusBar x:Name="StatusBar" Grid.Row="2">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -86,10 +162,10 @@
             </StatusBarItem>
             <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
                 <ProgressBar x:Name="StatusProgressBar"
-                            IsIndeterminate="{Binding ProgressIsIndeterminate}"
-                            Value="{Binding Progress, Mode=OneWay}"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" />
+                             IsIndeterminate="{Binding ProgressIsIndeterminate}"
+                             Value="{Binding Progress, Mode=OneWay}"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch" />
             </StatusBarItem>
         </StatusBar>
     </Grid>

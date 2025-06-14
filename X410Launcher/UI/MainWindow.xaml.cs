@@ -145,9 +145,9 @@ public partial class MainWindow : FluentWindow
         Application.Current.Shutdown();
     }
 
-    private void LaunchX10TrayMenuItem_Click(object sender, RoutedEventArgs e)
+    private async void LaunchX10TrayMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        _model.Launch();
+        await _model.LaunchAsync();
     }
 
     private async void KillX410TrayMenuItem_Click(object sender, RoutedEventArgs e)

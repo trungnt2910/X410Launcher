@@ -38,7 +38,11 @@ namespace X410Launcher.ViewModels
         public const string StatusTextUninstallCompleted = "Successfully uninstalled package.";
 
         public const string StatusTextKilled = "Sucessfully killed X410 process.";
-        public const string StatusTextStarted = "Sucessfully started X410 process.";
+
+        public const string StatusTextLaunching = "Starting X410 process...";
+        public const string StatusTextLaunchWaiting = "Waiting for response from X410 process...";
+        public const string StatusTextLaunched = "Sucessfully started X410 process.";
+        public const string StatusTextLaunchFailed = "Failed to start X410 process.";
 
         public const double ProgressIndeterminate = -1;
         public const double ProgressMin = 0;
@@ -47,6 +51,9 @@ namespace X410Launcher.ViewModels
         public const int DownloadMaxRetries = 128;
         public const int DownloadBufferSize = 32768;
 
+        public const int LaunchMaxRetries = 4;
+        public const int LaunchDelayMilliseconds = 1000;
+
         private string? _installedVersion;
         public string? InstalledVersion
         {
@@ -54,11 +61,39 @@ namespace X410Launcher.ViewModels
             private set => SetProperty(ref _installedVersion, value);
         }
 
+        private string? _installedArchitecture;
+        public string? InstalledArchitecture
+        {
+            get => _installedArchitecture;
+            private set => SetProperty(ref _installedArchitecture, value);
+        }
+
         private string? _latestVersion;
         public string? LatestVersion
         {
             get => _latestVersion;
             private set => SetProperty(ref _latestVersion, value);
+        }
+
+        private bool _isRunning;
+        public bool IsRunning
+        {
+            get => _isRunning;
+            private set => SetProperty(ref _isRunning, value);
+        }
+
+        private uint? _displayNumber;
+        public uint? DisplayNumber
+        {
+            get => _displayNumber;
+            private set => SetProperty(ref _displayNumber, value);
+        }
+
+        public string? _subscriptionStatus;
+        public string? SubscriptionStatus
+        {
+            get => _subscriptionStatus;
+            private set => SetProperty(ref _subscriptionStatus, value);
         }
 
         private ObservableCollection<PackageInfo> _packages = new();
@@ -96,7 +131,16 @@ namespace X410Launcher.ViewModels
         public string AppId
         {
             get => _appId;
-            private set => SetProperty(ref _appId, value);
+            private set
+            {
+                SetProperty(ref _appId, value);
+                OnPropertyChanged(nameof(StoreLink));
+            }
+        }
+
+        public string StoreLink
+        {
+            get => $"https://www.microsoft.com/store/apps/{_appId}";
         }
 
         private string _api = "https://store.rg-adguard.net/api/";
@@ -115,6 +159,7 @@ namespace X410Launcher.ViewModels
                 var deserializer = new XmlSerializer(typeof(Models.Appx.Package));
                 var package = deserializer.Deserialize(stream) as Models.Appx.Package;
                 InstalledVersion = package?.Identity?.VersionString;
+                InstalledArchitecture = package?.Identity?.ProcessorArchitecture.ToString();
             }
             else
             {
@@ -122,9 +167,31 @@ namespace X410Launcher.ViewModels
             }
         }
 
+        public void RefreshAppStatus()
+        {
+            IsRunning = X410.AreYouThere();
+            DisplayNumber = X410.GetDisplayNumber();
+            SubscriptionStatus = X410.GetSubscriptionStatus() switch
+            {
+                X410.SubscriptionStatus.SubscriptionActive
+                    => "Active",
+                X410.SubscriptionStatus.TrialValid
+                    => "Trial",
+                X410.SubscriptionStatus.SubscriptionExpired or
+                X410.SubscriptionStatus.TrialExpired
+                    => "Expired",
+                X410.SubscriptionStatus.NoAppUseEntitlement or
+                X410.SubscriptionStatus.StoreError
+                    => "Error",
+                X410.SubscriptionStatus.Unknown or _
+                    => "Unknown"
+            };
+        }
+
         public async Task RefreshAsync()
         {
             RefreshInstalledVersion();
+            RefreshAppStatus();
 
             Packages.Clear();
             Progress = ProgressIndeterminate;
@@ -350,20 +417,74 @@ namespace X410Launcher.ViewModels
         {
             await Task.Run(() =>
             {
+                // Give the app a chance to exit cleanly.
+                while (X410.AppExit())
+                {
+                    continue;
+                }
+
                 foreach (var proc in Process.GetProcessesByName("X410"))
+                {
+                    proc.Kill();
+                }
+
+                // Kill any hanging settings menu as well.
+                foreach (var proc in Process.GetProcessesByName("X410.Settings"))
                 {
                     proc.Kill();
                 }
             });
 
+            RefreshAppStatus();
+
             StatusText = StatusTextKilled;
         }
 
-        public void Launch()
+        public async Task LaunchAsync()
         {
-            Launcher.Launch(Paths.GetAppFile());
+            StatusText = StatusTextLaunching;
 
-            StatusText = StatusTextStarted;
+            await Task.Run(async () =>
+            {
+                if (!X410.AreYouThere())
+                {
+                    try
+                    {
+                        Launcher.Launch(Paths.GetAppFile());
+                    }
+                    catch
+                    {
+                        StatusText = StatusTextLaunchFailed;
+                        return;
+                    }
+                }
+
+                for (int i = 0; i < LaunchMaxRetries; ++i)
+                {
+                    if (X410.AreYouThere())
+                    {
+                        X410.SetFocus();
+
+                        // Launch settings app for more initial visibility.
+                        Launcher.LaunchSettings(Paths.GetSettingsAppFile());
+
+                        Progress = ProgressMax;
+                        StatusText = StatusTextLaunched;
+
+                        return;
+                    }
+
+                    Progress = -1;
+                    StatusText = StatusTextLaunchWaiting;
+
+                    await Task.Delay(LaunchDelayMilliseconds);
+                }
+
+                Progress = ProgressMin;
+                StatusText = StatusTextLaunchFailed;
+            });
+
+            RefreshAppStatus();
         }
 
         private void _ExtractPatched(

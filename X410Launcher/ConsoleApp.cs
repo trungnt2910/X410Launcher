@@ -216,7 +216,7 @@ public class ConsoleApp: IRunnable
 
         if (_options.IsLaunch)
         {
-            model.Launch();
+            await model.LaunchAsync();
         }
 
         if (_options.IsKill)

@@ -44,4 +44,13 @@ public static class Launcher
 
         Process.Start(path);
     }
+
+    public static void LaunchSettings(string path)
+    {
+        Process.Start(new ProcessStartInfo()
+        {
+            FileName = Paths.GetSettingsAppFile(),
+            Arguments = $"/hw {(ulong)X410.FindRootWindow():X}"
+        });
+    }
 }

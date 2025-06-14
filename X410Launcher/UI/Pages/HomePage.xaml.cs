@@ -23,11 +23,19 @@ public partial class HomePage : Page
         _model = (X410StatusViewModel)DataContext;
 
         RefreshButton_Click(null, null);
+
+        // Allow the user to launch/kill on page load without waiting for package list.
+        LaunchButton.IsEnabled = _model.InstalledVersion != null;
+        KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
     private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
     {
         Process.Start(new ProcessStartInfo() { FileName = _model.Api, UseShellExecute = true });
+    }
+    private void StoreHyperlink_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo() { FileName = _model.StoreLink, UseShellExecute = true });
     }
 
     #region Buttons
@@ -114,13 +122,13 @@ public partial class HomePage : Page
         EnableButtons();
     }
 
-    private void LaunchButton_Click(object sender, RoutedEventArgs e)
+    private async void LaunchButton_Click(object sender, RoutedEventArgs e)
     {
         DisableButtons();
 
         try
         {
-            _model.Launch();
+            await _model.LaunchAsync();
         }
         catch (Exception ex)
         {
