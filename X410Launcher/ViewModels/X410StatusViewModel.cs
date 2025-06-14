@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +7,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using X410Launcher.Tools;
@@ -485,131 +483,6 @@ namespace X410Launcher.ViewModels
             });
 
             RefreshAppStatus();
-        }
-
-        private void _ExtractPatched(
-            Models.Appx.ProcessorArchitecture architecture,
-            string fullPath,
-            byte[] data
-        )
-        {
-            StatusText = string.Format(StatusTextPatching, fullPath);
-
-            switch (architecture)
-            {
-                case Models.Appx.ProcessorArchitecture.X64:
-                    {
-                        var dataText = string.Concat(Array.ConvertAll(data, x => x.ToString("x2")));
-                        var matches = Regex.Matches(
-                            dataText,
-                            // push rbp
-                            "4055.{0,128}" +
-                            // mov rax, 0x8000000000000000
-                            // xor esi, esi
-                            "48b8000000000000008033f6.{0,128}?" +
-                            // mov status, si
-                            // mov expiry, rax
-                            "(668935(.{8}))(488905(.{8}))",
-                            RegexOptions.Compiled | RegexOptions.IgnoreCase
-                        );
-
-                        if (matches.Count != 1 && Debugger.IsAttached)
-                        {
-                            Debugger.Break();
-                        }
-
-                        foreach (var match in matches.Cast<Match>())
-                        {
-                            // All indices from the hex string are to be divided by two.
-                            var ip0 = match.Groups[1].Index / 2;
-                            var rel0 = _HexToUInt32(_StringToHex(match.Groups[2].Value).Reverse());
-                            var ip1 = match.Groups[3].Index / 2;
-                            var rel1 = _HexToUInt32(_StringToHex(match.Groups[4].Value).Reverse());
-
-                            var index = match.Index / 2;
-
-                            var head = new byte[]
-                            {
-                                // push rbp
-                                0x40, 0x55,
-                                // push rsi
-                                0x56,
-                                // mov rax, 0x7FFFFFFFFFFFFFFF
-                                0x48, 0xB8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
-                                // mov si, 0x1
-                                0x66, 0xBE, 0x01, 0x00
-                            };
-                            Array.Copy(head, 0, data, index, head.Length);
-                            index += head.Length;
-
-                            rel0 += unchecked((uint)(ip0 - index));
-                            var mov0 = new byte[]
-                            {
-                                // mov [memory location], si
-                                0x66, 0x89, 0x35
-                            };
-                            Array.Copy(mov0, 0, data, index, mov0.Length);
-                            index += mov0.Length;
-
-                            var movAddr0 = BitConverter.GetBytes(rel0);
-                            if (!BitConverter.IsLittleEndian)
-                            {
-                                movAddr0 = [.. movAddr0.Reverse()];
-                            }
-                            Array.Copy(movAddr0, 0, data, index, movAddr0.Length);
-                            index += movAddr0.Length;
-
-                            rel1 += unchecked((uint)(ip1 - index));
-                            var mov1 = new byte[]
-                            {
-                                // mov [memory location], rax
-                                0x48, 0x89, 0x05
-                            };
-                            Array.Copy(mov1, 0, data, index, mov1.Length);
-                            index += mov1.Length;
-
-                            var movAddr1 = BitConverter.GetBytes(rel1);
-                            if (!BitConverter.IsLittleEndian)
-                            {
-                                movAddr1 = [.. movAddr1.Reverse()];
-                            }
-                            Array.Copy(movAddr1, 0, data, index, movAddr1.Length);
-                            index += movAddr1.Length;
-
-                            var tail = new byte[]
-                            {
-                                // pop rsi
-                                0x5E,
-                                // pop rbp
-                                0x5D,
-                                // ret
-                                0xC3
-                            };
-                            Array.Copy(tail, 0, data, index, tail.Length);
-                            index += tail.Length;
-                        }
-                    }
-                    break;
-            }
-
-            File.WriteAllBytes(fullPath, data);
-        }
-
-        private static byte[] _StringToHex(string s)
-        {
-            return [
-                .. Enumerable.Range(0, s.Length / 2)
-                    .Select(x => Convert.ToByte(s.Substring(x * 2, 2), 16))
-            ];
-        }
-
-        private static uint _HexToUInt32(IEnumerable<byte> bytes)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                bytes = [.. bytes.Reverse()];
-            }
-            return BitConverter.ToUInt32([..bytes], 0);
         }
     }
 }
