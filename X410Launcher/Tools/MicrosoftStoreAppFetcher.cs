@@ -59,7 +59,7 @@ public class MicrosoftStorePackage
         foreach (var row in table)
         {
             var data = row.Elements("td").ToList();
-            string url = data[0].Descendants("a").First().GetAttributeValue("href", null);
+            string url = data[0].Descendants("a").First().GetAttributeValue("href", string.Empty);
             string name = data[0].InnerText;
             string expire = data[1].InnerText;
             string sha1 = data[2].InnerText;
