@@ -371,12 +371,13 @@ namespace X410Launcher.ViewModels
                 {
                     if (helperStream is not null)
                     {
-                        StatusText = StatusTextExtractingHelper;
+                        var helperPath = Paths.GetHelperDllFile();
+                        StatusText = string.Format(StatusTextExtractingHelper, helperPath);
                         await Task.Run(() =>
                         {
                             using var memory = new MemoryStream();
                             helperStream.CopyTo(memory);
-                            File.WriteAllBytes(Paths.GetHelperDllFile(), memory.ToArray());
+                            File.WriteAllBytes(helperPath, memory.ToArray());
                         });
                     }
                 }
