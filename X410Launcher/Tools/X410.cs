@@ -66,6 +66,11 @@ public static class X410
             && result == value;
     }
 
+    public static bool HaveAnyXClient()
+    {
+        return _TrySendX410Message(IntMsg.HaveAnyXClient, 0u, out var result) && result != 0;
+    }
+
     public static uint? GetDisplayNumber()
     {
         return _TrySendX410Message(IntMsg.GetDisplayNumber, 0u, out var number)

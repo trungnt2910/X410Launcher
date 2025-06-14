@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -67,6 +68,24 @@ public partial class MainWindow : FluentWindow
             {
                 Tray.Icon = Icon = GetIconImage(Paths.GetAppFile()) ?? Icon;
                 RootTitleBar.Icon = new ImageIcon() { Source = Icon };
+            }
+        }
+    }
+
+    private async Task SafeKillAsync()
+    {
+        if (!await _model.KillAsync())
+        {
+            var result = System.Windows.MessageBox.Show(
+                "There are active X clients. Are you sure you want to kill X410? " +
+                "You may lose any unsaved work.",
+                "Kill X410",
+                System.Windows.MessageBoxButton.YesNo
+            );
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                await _model.KillAsync(force: true);
             }
         }
     }
@@ -141,7 +160,7 @@ public partial class MainWindow : FluentWindow
 
     private async void ExitAndKillX410TrayMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        await _model.KillAsync();
+        await SafeKillAsync();
         Application.Current.Shutdown();
     }
 
@@ -152,7 +171,7 @@ public partial class MainWindow : FluentWindow
 
     private async void KillX410TrayMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        await _model.KillAsync();
+        await SafeKillAsync();
     }
     #endregion
 }

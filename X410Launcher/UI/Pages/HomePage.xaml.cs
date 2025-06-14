@@ -112,7 +112,20 @@ public partial class HomePage : Page
 
         try
         {
-            await _model.KillAsync();
+            if (!await _model.KillAsync())
+            {
+                var result = MessageBox.Show(
+                    "There are active X clients. Are you sure you want to kill X410? " +
+                    "You may lose any unsaved work.",
+                    "Kill X410",
+                    MessageBoxButton.YesNo
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    await _model.KillAsync(force: true);
+                }
+            }
         }
         catch (Exception ex)
         {

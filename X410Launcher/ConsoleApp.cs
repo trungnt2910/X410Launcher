@@ -202,10 +202,22 @@ public class ConsoleApp: IRunnable
                 }
             }
 
-            model.PropertyChanged += UpdateConsoleStatus;
-            await model.InstallPackageAsync(0);
-            model.PropertyChanged -= UpdateConsoleStatus;
-            ConsoleHelpers.CleanLine();
+            if (_options.IsForce)
+            {
+                // Pre-emptively kill the server to prevent errors.
+                await model.KillAsync(force: true);
+            }
+
+            try
+            {
+                model.PropertyChanged += UpdateConsoleStatus;
+                await model.InstallPackageAsync(0);
+            }
+            finally
+            {
+                model.PropertyChanged -= UpdateConsoleStatus;
+                ConsoleHelpers.CleanLine();
+            }
         noInstall:;
         }
 
@@ -221,7 +233,10 @@ public class ConsoleApp: IRunnable
 
         if (_options.IsKill)
         {
-            await model.KillAsync();
+            if (!await model.KillAsync(_options.IsForce))
+            {
+                Console.Error.WriteLine("Failed to kill X410. Close your apps first, or try again with --force.");
+            }
         }
 
         return 0;
@@ -234,23 +249,23 @@ public class ConsoleApp: IRunnable
             switch (e.PropertyName)
             {
                 case nameof(X410StatusViewModel.StatusText):
+                {
+                    ConsoleHelpers.CleanErrorAndWriteLine(model.StatusText);
+                    if (!model.ProgressIsIndeterminate)
                     {
-                        ConsoleHelpers.CleanErrorAndWriteLine(model.StatusText);
-                        if (!model.ProgressIsIndeterminate)
-                        {
-                            ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
-                        }
+                        ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
                     }
-                    break;
+                }
+                break;
                 case nameof(X410StatusViewModel.Progress):
+                {
+                    if (!model.ProgressIsIndeterminate)
                     {
-                        if (!model.ProgressIsIndeterminate)
-                        {
-                            Console.CursorLeft = 0;
-                            ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
-                        }
+                        Console.CursorLeft = 0;
+                        ConsoleHelpers.ErrorWriteProgressBar(model.Progress);
                     }
-                    break;
+                }
+                break;
             }
         }
     }

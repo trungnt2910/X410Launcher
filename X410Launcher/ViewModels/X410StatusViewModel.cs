@@ -42,6 +42,8 @@ namespace X410Launcher.ViewModels
         public const string StatusTextLaunched = "Sucessfully started X410 process.";
         public const string StatusTextLaunchFailed = "Failed to start X410 process.";
 
+        public const string StatusTextCloseAppsFirst = "There are active X clients. Please close your apps before proceeding.";
+
         public const double ProgressIndeterminate = -1;
         public const double ProgressMin = 0;
         public const double ProgressMax = 100;
@@ -228,6 +230,21 @@ namespace X410Launcher.ViewModels
 
         public async Task InstallPackageAsync(int index)
         {
+            var wasRunning = false;
+
+            if (X410.AreYouThere())
+            {
+                wasRunning = true;
+
+                if (X410.HaveAnyXClient())
+                {
+                    StatusText = StatusTextCloseAppsFirst;
+                    throw new InvalidOperationException(StatusTextCloseAppsFirst);
+                }
+
+                await KillAsync();
+            }
+
             InstalledVersion = null;
 
             var selectedPackage = _packages[index];
@@ -267,8 +284,6 @@ namespace X410Launcher.ViewModels
             }
 
             packageStream.Seek(0, SeekOrigin.Begin);
-
-            var wasRunning = X410.AreYouThere();
 
             try
             {
@@ -384,17 +399,17 @@ namespace X410Launcher.ViewModels
 
                 Progress = ProgressMax;
                 StatusText = StatusTextInstallCompleted;
-                RefreshInstalledVersion();
             }
             catch
             {
                 Progress = ProgressMin;
                 StatusText = StatusTextInstallFailed;
-                RefreshInstalledVersion();
                 throw;
             }
             finally
             {
+                RefreshInstalledVersion();
+
                 if (wasRunning)
                 {
                     await LaunchAsync();
@@ -404,6 +419,12 @@ namespace X410Launcher.ViewModels
 
         public async Task UninstallPackageAsync()
         {
+            if (X410.HaveAnyXClient())
+            {
+                StatusText = StatusTextCloseAppsFirst;
+                throw new InvalidOperationException(StatusTextCloseAppsFirst);
+            }
+
             await KillAsync();
 
             var appPath = Paths.GetAppInstallPath();
@@ -421,8 +442,14 @@ namespace X410Launcher.ViewModels
             StatusText = StatusTextUninstallCompleted;
         }
 
-        public async Task KillAsync()
+        public async Task<bool> KillAsync(bool force = false)
         {
+            if (!force && X410.HaveAnyXClient())
+            {
+                StatusText = StatusTextCloseAppsFirst;
+                return false;
+            }
+
             await Task.Run(() =>
             {
                 // Give the app a chance to exit cleanly.
@@ -446,6 +473,7 @@ namespace X410Launcher.ViewModels
             RefreshAppStatus();
 
             StatusText = StatusTextKilled;
+            return true;
         }
 
         public async Task LaunchAsync()
