@@ -137,7 +137,7 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button x:Name="RefreshButton" Content="Refresh" Click="RefreshButton_Click" />
                 <Border Width="10"/>
-                <Button x:Name="InstallButton" Content="Install selected version" Click="InstallButton_Click" IsEnabled="False" />
+                <Button x:Name="InstallButton" Content="Install Selected Version" Click="InstallButton_Click" IsEnabled="False" />
                 <Border Width="10"/>
                 <Button x:Name="UninstallButton" Content="Uninstall X410" Click="UninstallButton_Click" IsEnabled="False" />
                 <Border Width="10"/>
