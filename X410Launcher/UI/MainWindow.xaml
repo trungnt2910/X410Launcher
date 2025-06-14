@@ -60,7 +60,7 @@
             </wpfui:TitleBar.TrailingContent>
         </wpfui:TitleBar>
 
-        <wpfui_tray:NotifyIcon x:Name="Tray" FocusOnLeftClick="False" LeftDoubleClick="NotifyIcon_LeftDoubleClick" MenuOnRightClick="True" TooltipText="X410Launcher">
+        <wpfui_tray:NotifyIcon x:Name="Tray" FocusOnLeftClick="True" MenuOnRightClick="True" TooltipText="X410Launcher">
             <wpfui_tray:NotifyIcon.Menu>
                 <ContextMenu>
                     <wpfui:MenuItem Header="Open" Icon="{wpfui:SymbolIcon WindowNew20}" Click="OpenTrayMenuItem_Click" />
