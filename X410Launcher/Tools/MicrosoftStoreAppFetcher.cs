@@ -29,15 +29,10 @@ public class MicrosoftStorePackage
 
     public async Task LoadAsync()
     {
-        using var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-        using var client = new HttpClient(handler);
+        using var client = new HttpClient();
         client.BaseAddress = new Uri(_apiBase);
         client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
         client.DefaultRequestHeaders.Add("Referer", "https://store.rg-adguard.net/");
-        client.DefaultRequestHeaders.Add("Origin", "https://store.rg-adguard.net");
-        client.DefaultRequestHeaders.Add("Accept", "text/html, */*; q=0.01");
-        client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
-        client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
         var response = await client.PostAsync("GetFiles", new FormUrlEncodedContent(new Dictionary<string, string>()
         {
             { "type", "ProductId" },
