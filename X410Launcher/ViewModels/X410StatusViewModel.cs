@@ -18,7 +18,8 @@ namespace X410Launcher.ViewModels
     {
         public const string StatusTextReady = "Ready.";
 
-        public const string StatusTextFetching = "Fetching packages from provider: {0}...";
+        public const string StatusTextFetching = "Fetching packages from the Microsoft Store...";
+        public const string StatusTextFetchScanning = "Scanning {0}/{1} entries...";
         public const string StatusTextFetchFailed = "Failed to fetch packages.";
         public const string StatusTextFetchCompleted = "Fetched {0} packages.";
 
@@ -148,13 +149,6 @@ namespace X410Launcher.ViewModels
             get => $"https://www.microsoft.com/store/apps/{_appId}";
         }
 
-        private string _api = "https://store.rg-adguard.net/api/";
-        public string Api
-        {
-            get => _api;
-            private set => SetProperty(ref _api, value);
-        }
-
         public void RefreshInstalledVersion()
         {
             var appxManifestPath = Path.Combine(Paths.GetAppInstallPath(), "AppxManifest.xml");
@@ -200,12 +194,24 @@ namespace X410Launcher.ViewModels
 
             Packages.Clear();
             Progress = ProgressIndeterminate;
-            StatusText = string.Format(StatusTextFetching, _api);
+            StatusText = StatusTextFetching;
 
             try
             {
-                var msPackage = new MicrosoftStorePackage(_appId, _api);
-                await msPackage.LoadAsync();
+                var msPackage = new MicrosoftStorePackage(_appId);
+
+                await msPackage.LoadAsync(() =>
+                {
+                    if (msPackage.TotalLocations.GetValueOrDefault() != 0)
+                    {
+                        int currentLocations = msPackage.Locations.Count;
+                        int totalLocations = msPackage.TotalLocations!.Value;
+
+                        Progress = ProgressMin + ((ProgressMax - ProgressMin) * (currentLocations / (double)totalLocations));
+                        StatusText = string.Format(StatusTextFetchScanning, currentLocations, totalLocations);
+                    }
+                });
+
                 var desiredPackageArchitectures = RuntimeInformation.OSArchitecture switch
                 {
                     Architecture.X64 => new[] { Tools.PackageArchitecture.x64, Tools.PackageArchitecture.x86, Tools.PackageArchitecture.neutral },

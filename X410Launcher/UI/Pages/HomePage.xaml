@@ -28,11 +28,7 @@
                     <TextBlock.Foreground>
                         <SolidColorBrush Color="{DynamicResource TextFillColorPrimary}" />
                     </TextBlock.Foreground>
-                    <Span>Packages found on the</Span>
-                    <Hyperlink Click="ApiHyperlink_Click" ToolTip="{Binding Api, Mode=OneWay}">
-                        Microsoft Store API
-                    </Hyperlink>
-                    <Span> for ID </Span>
+                    <Span>Packages found on the Microsoft Store for ID </Span>
                     <Hyperlink Click="StoreHyperlink_Click" ToolTip="{Binding StoreLink, Mode=OneWay}">
                         <Run Text="{Binding AppId, Mode=OneWay}"/>
                     </Hyperlink><Span>:</Span>

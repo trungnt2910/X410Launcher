@@ -29,10 +29,6 @@ public partial class HomePage : Page
         KillButton.IsEnabled = _model.InstalledVersion != null;
     }
 
-    private void ApiHyperlink_Click(object sender, RoutedEventArgs e)
-    {
-        Process.Start(new ProcessStartInfo() { FileName = _model.Api, UseShellExecute = true });
-    }
     private void StoreHyperlink_Click(object sender, RoutedEventArgs e)
     {
         Process.Start(new ProcessStartInfo() { FileName = _model.StoreLink, UseShellExecute = true });
